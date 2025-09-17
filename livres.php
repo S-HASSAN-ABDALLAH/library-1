@@ -174,7 +174,7 @@ if ($_GET['edit'] ?? false) {
                 </div>
 
                 <div class="form-group">
-                    <label>
+                    <label class="checkbox-label">
                         <input type="checkbox" name="disponible" value="1" <?= (!$editLivre || $editLivre['disponible']) ? 'checked' : '' ?>>
                         Disponible
                     </label>
