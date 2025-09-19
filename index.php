@@ -18,7 +18,7 @@
     <!-- Navigation principale -->
     <div class="nav">
         <a href="index.php">Accueil</a>
-        <a href="auteurs.php">Auteurs</a>
+        <a href="auteurs_modular.php">Auteurs</a>
         <a href="livres.php">Livres</a>
         <a href="emprunts.php">Emprunts</a>
     </div>
