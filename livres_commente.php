@@ -45,7 +45,23 @@ $limit = 10;
 $offset = ($page - 1) * $limit;
 
 // ========================================================================
-// ÉTAPE 3 : TRAITEMENT DES ACTIONS POST (FORMULAIRES)
+// ÉTAPE 3 : GESTION DU MODE ÉDITION (AVANT LES ACTIONS POST)
+// ========================================================================
+
+// Variable pour stocker les données du livre en cours d'édition
+$editLivre = null;
+
+// Si un paramètre 'edit' existe dans l'URL (ex: livres.php?edit=5)
+if ($_GET['edit'] ?? false) {
+    // Récupère toutes les données du livre à modifier
+    $stmt = $pdo->prepare("SELECT * FROM livres WHERE id_livre = ?");
+    $stmt->execute([$_GET['edit']]);
+    // fetch() : récupère une seule ligne (le livre à éditer)
+    $editLivre = $stmt->fetch();
+}
+
+// ========================================================================
+// ÉTAPE 4 : TRAITEMENT DES ACTIONS POST (FORMULAIRES)
 // ========================================================================
 
 // ---------- ACTION : AJOUTER UN NOUVEAU LIVRE ----------
@@ -71,21 +87,25 @@ if ($_POST['action'] ?? '' == 'add') {
     exit;
 }
 
-// ---------- ACTION : MODIFIER UN LIVRE EXISTANT ----------
+// ---------- ACTION : REMPLACER UN LIVRE (SUPPRIMER PUIS AJOUTER) ----------
 if ($_POST['action'] ?? '' == 'edit') {
 
-    // UPDATE avec WHERE pour cibler le bon livre
-    $stmt = $pdo->prepare("UPDATE livres SET titre=?, id_auteur=?, categorie=?, isbn=?, annee_publication=?, disponible=? WHERE id_livre=?");
+    // Vérifier si l'ID existe
+    if (isset($_POST['id']) && $_POST['id']) {
+        // Supprimer l'ancien livre
+        $deleteStmt = $pdo->prepare("DELETE FROM livres WHERE id_livre = ?");
+        $deleteStmt->execute([$_POST['id']]);
+    }
 
-    // 7 paramètres : 6 pour les nouvelles valeurs + 1 pour l'ID dans WHERE
-    $stmt->execute([
+    // Ajouter le nouveau livre avec les modifications
+    $insertStmt = $pdo->prepare("INSERT INTO livres (titre, id_auteur, categorie, isbn, annee_publication, disponible) VALUES (?, ?, ?, ?, ?, ?)");
+    $insertStmt->execute([
         $_POST['titre'],
         $_POST['id_auteur'],
         $_POST['categorie'],
         $_POST['isbn'],
         $_POST['annee_publication'],
-        $_POST['disponible'] ?? 1,
-        $_POST['id']                // ID du livre à modifier
+        $_POST['disponible'] ?? 1
     ]);
 
     header('Location: livres.php');
@@ -208,23 +228,6 @@ $categoriesStmt = $pdo->query("
 ");
 $categories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
 
-// ========================================================================
-// ÉTAPE 7 : GESTION DU MODE ÉDITION
-// ========================================================================
-
-// Variable pour stocker les données du livre en cours d'édition
-$editLivre = null;
-
-// Si un paramètre 'edit' existe dans l'URL (ex: livres.php?edit=5)
-if ($_GET['edit'] ?? false) {
-
-    // Récupère toutes les données du livre à modifier
-    $stmt = $pdo->prepare("SELECT * FROM livres WHERE id_livre = ?");
-    $stmt->execute([$_GET['edit']]);
-
-    // fetch() : récupère une seule ligne (le livre à éditer)
-    $editLivre = $stmt->fetch();
-}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -278,7 +281,7 @@ if ($_GET['edit'] ?? false) {
                             <!-- Boucle sur tous les auteurs de la base -->
                             <?php foreach ($auteurs as $auteur): ?>
                                 <option value="<?= $auteur['id_auteur'] ?>"
-                                        <!-- selected : pré-sélectionne l'auteur actuel si édition -->
+                                        
                                         <?= ($editLivre && $editLivre['id_auteur'] == $auteur['id_auteur']) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($auteur['nom_complet']) ?>
                                 </option>
