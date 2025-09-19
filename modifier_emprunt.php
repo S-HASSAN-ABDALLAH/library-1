@@ -11,10 +11,10 @@ $id_emprunt = $_GET['id'];
 
 // Traitement de la modification
 if ($_POST) {
-    $stmt = $pdo->prepare("UPDATE emprunts SET nom_emprunteur=?, email_emprunteur=?, date_emprunt=?, date_retour_prevue=? WHERE id_emprunt=?");
+    $stmt = $pdo->prepare("UPDATE emprunts SET nom_emprunteur=?,  date_emprunt=?, date_retour_prevue=? WHERE id_emprunt=?");
     $result = $stmt->execute([
         $_POST['nom_emprunteur'],
-        $_POST['email_emprunteur'],
+        
         $_POST['date_emprunt'],
         $_POST['date_retour_prevue'],
         $id_emprunt
@@ -80,10 +80,7 @@ if (!$emprunt) {
                         <label>Nom de l'emprunteur :</label>
                         <input type="text" name="nom_emprunteur" value="<?= htmlspecialchars($emprunt['nom_emprunteur']) ?>" required>
                     </div>
-                    <div class="form-group">
-                        <label>Email :</label>
-                        <input type="email" name="email_emprunteur" value="<?= htmlspecialchars($emprunt['email_emprunteur']) ?>" required>
-                    </div>
+
                 </div>
 
                 <div class="grid-2">
